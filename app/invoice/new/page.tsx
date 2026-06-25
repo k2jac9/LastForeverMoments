@@ -16,7 +16,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { getPackageById, getPayUrl } from '@/lib/invoices';
 import { formatCurrency } from '@/lib/utils';
-import type { Invoice, LineItem, PackageId } from '@/lib/types';
+import type { Invoice, LineItem, PackageId, SendVia } from '@/lib/types';
 
 type Step = 'form' | 'success';
 
@@ -30,7 +30,7 @@ export default function NewInvoicePage() {
   const [clientName, setClientName] = useState('');
   const [contact, setContact] = useState('');
   const [note, setNote] = useState('');
-  const [sendVia, setSendVia] = useState<'sms' | 'email'>('sms');
+  const [sendVia, setSendVia] = useState<SendVia>('sms');
   const [previewOpen, setPreviewOpen] = useState(false);
   const [sending, setSending] = useState(false);
   const [createdInvoice, setCreatedInvoice] = useState<Invoice | null>(null);
@@ -154,13 +154,13 @@ export default function NewInvoicePage() {
         <div>
           <h1 className="text-2xl font-bold">Invoice sent!</h1>
           <p className="mt-2 font-body text-muted-foreground">
-            {createdInvoice.clientName} can pay now before you leave.
+            {createdInvoice.clientName} can pay now before you leave the venue.
           </p>
         </div>
 
         <Card className="w-full">
           <CardContent className="flex flex-col items-center gap-4 p-6">
-            <p className="text-sm font-medium">Scan to pay</p>
+            <p className="text-sm font-medium">Scan to pay on the spot</p>
             <div className="rounded-2xl border bg-white p-4">
               <QRCodeSVG value={payUrl} size={180} level="M" />
             </div>
@@ -174,7 +174,7 @@ export default function NewInvoicePage() {
             Copy link
           </Button>
           <Button className="flex-1" onClick={() => router.push(`/pay/${createdInvoice.id}`)}>
-            Open pay page
+            Preview pay page
           </Button>
         </div>
 
@@ -279,9 +279,9 @@ export default function NewInvoicePage() {
         onOpenChange={setPreviewOpen}
         invoice={draftInvoice}
         payUrl={
-          draftInvoice && typeof window !== 'undefined'
+          typeof window !== 'undefined'
             ? `${window.location.origin}/pay/[invoice-id]`
-            : 'https://snappay.app/pay/[invoice-id]'
+            : '/pay/[invoice-id]'
         }
         sendVia={sendVia}
         onSendViaChange={setSendVia}

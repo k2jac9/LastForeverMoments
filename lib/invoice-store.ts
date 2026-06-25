@@ -23,12 +23,13 @@ export function getInvoice(id: string): Invoice | undefined {
 }
 
 export function createInvoice(input: CreateInvoiceInput): Invoice {
+  const now = new Date().toISOString();
   const invoice: Invoice = {
     id: crypto.randomUUID(),
     ...input,
     status: 'sent',
-    createdAt: new Date().toISOString(),
-    sentAt: new Date().toISOString(),
+    createdAt: now,
+    sentAt: now,
   };
   getStore().unshift(invoice);
   return invoice;

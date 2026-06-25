@@ -1,50 +1,57 @@
+'use client';
+
 import Link from 'next/link';
-import { ChevronRight } from 'lucide-react';
+import { Copy, ExternalLink } from 'lucide-react';
+import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/utils';
-import type { Invoice, InvoiceStatus } from '@/lib/types';
-
-function statusVariant(status: InvoiceStatus): 'paid' | 'sent' | 'pending' {
-  if (status === 'paid') return 'paid';
-  if (status === 'sent') return 'sent';
-  return 'pending';
-}
-
-function statusLabel(status: InvoiceStatus): string {
-  if (status === 'paid') return 'Paid';
-  if (status === 'sent') return 'Sent';
-  return 'Pending';
-}
+import { getPayUrl } from '@/lib/invoices';
+import type { Invoice } from '@/lib/types';
 
 export function InvoiceCard({ invoice }: { invoice: Invoice }) {
-  const content = (
-    <Card className="transition-shadow hover:shadow-md">
-      <CardContent className="flex items-center gap-3 p-4">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <p className="truncate font-medium">{invoice.clientName}</p>
-            <Badge variant={statusVariant(invoice.status)}>{statusLabel(invoice.status)}</Badge>
-          </div>
-          <p className="mt-1 truncate font-body text-sm text-muted-foreground">
-            {invoice.packageName}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <p className="font-body text-base font-semibold">{formatCurrency(invoice.amount)}</p>
-          {invoice.status !== 'paid' && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
-        </div>
-      </CardContent>
-    </Card>
-  );
-
-  if (invoice.status === 'paid') {
-    return content;
+  async function copyLink() {
+    await navigator.clipboard.writeText(getPayUrl(invoice.id));
+    toast.success('Payment link copied');
   }
 
   return (
-    <Link href={`/pay/${invoice.id}`} className="block">
-      {content}
-    </Link>
+    <Card>
+      <CardContent className="p-4">
+        <div className="flex items-start gap-3">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <p className="truncate font-medium">{invoice.clientName}</p>
+              <Badge variant={invoice.status === 'paid' ? 'paid' : 'sent'}>
+                {invoice.status === 'paid' ? 'Paid' : 'Sent'}
+              </Badge>
+            </div>
+            <p className="mt-1 truncate font-body text-sm text-muted-foreground">
+              {invoice.packageName}
+            </p>
+            <p className="mt-0.5 truncate font-body text-xs text-muted-foreground">
+              {invoice.contact} · via {invoice.sendVia}
+            </p>
+          </div>
+          <p className="font-body text-base font-semibold">{formatCurrency(invoice.amount)}</p>
+        </div>
+
+        {invoice.status === 'sent' && (
+          <div className="mt-3 flex gap-2">
+            <Button variant="outline" size="sm" className="flex-1" onClick={() => void copyLink()}>
+              <Copy className="h-4 w-4" />
+              Copy link
+            </Button>
+            <Button variant="outline" size="sm" className="flex-1" asChild>
+              <Link href={`/pay/${invoice.id}`}>
+                <ExternalLink className="h-4 w-4" />
+                Pay page
+              </Link>
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

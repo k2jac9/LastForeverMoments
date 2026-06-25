@@ -17,8 +17,8 @@ const roboto = Roboto({
 });
 
 export const metadata: Metadata = {
-  title: 'SnapPay — Invoice before you leave the venue',
-  description: 'Mobile invoicing for wedding photographers. Get paid faster from the field.',
+  title: 'Matt Morrison Photography — Invoicing',
+  description: 'Track wedding photography invoices from the field.',
 };
 
 export const viewport: Viewport = {

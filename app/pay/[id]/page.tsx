@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Camera } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 import { PayCheckout } from '@/components/pay-checkout';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,11 +13,11 @@ import type { Invoice } from '@/lib/types';
 export default function PayPage({ params }: { params: Promise<{ id: string }> }) {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [paid, setPaid] = useState(false);
   const [invoiceId, setInvoiceId] = useState<string | null>(null);
 
   useEffect(() => {
-    void params.then((p) => setInvoiceId(p.id));
+    void params.then(({ id }) => setInvoiceId(id));
   }, [params]);
 
   useEffect(() => {
@@ -25,14 +25,12 @@ export default function PayPage({ params }: { params: Promise<{ id: string }> })
 
     async function load() {
       try {
-        const res = await fetch(`/api/invoices/${invoiceId}`, { cache: 'no-store' });
-        if (!res.ok) {
-          setError('Invoice not found');
-          return;
+        const res = await fetch(`/api/invoices/${invoiceId}`);
+        if (res.ok) {
+          const data = (await res.json()) as Invoice;
+          setInvoice(data);
+          setPaid(data.status === 'paid');
         }
-        setInvoice((await res.json()) as Invoice);
-      } catch {
-        setError('Could not load invoice');
       } finally {
         setLoading(false);
       }
@@ -45,46 +43,47 @@ export default function PayPage({ params }: { params: Promise<{ id: string }> })
     if (!invoiceId) return;
     const res = await fetch(`/api/invoices/${invoiceId}/pay`, { method: 'POST' });
     if (res.ok) {
-      setInvoice((await res.json()) as Invoice);
+      const updated = (await res.json()) as Invoice;
+      setInvoice(updated);
+      setPaid(true);
     }
   }
 
   if (loading) {
-    return (
-      <div className="flex min-h-[60dvh] items-center justify-center">
-        <p className="font-body text-muted-foreground">Loading invoice…</p>
-      </div>
-    );
+    return <p className="py-12 text-center font-body text-muted-foreground">Loading invoice…</p>;
   }
 
-  if (error || !invoice) {
+  if (!invoice) {
+    return <p className="py-12 text-center font-body text-muted-foreground">Invoice not found.</p>;
+  }
+
+  if (paid) {
     return (
-      <div className="flex min-h-[60dvh] flex-col items-center justify-center text-center">
-        <p className="text-lg font-semibold">Invoice not found</p>
-        <p className="mt-2 font-body text-sm text-muted-foreground">
-          This link may have expired or is invalid.
+      <div className="flex flex-col items-center space-y-4 py-12 text-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+          <CheckCircle2 className="h-9 w-9 text-emerald-600" />
+        </div>
+        <h1 className="text-2xl font-bold">Payment received</h1>
+        <p className="font-body text-muted-foreground">
+          Thank you! Matt has been notified.
         </p>
+        <p className="font-body text-2xl font-bold">{formatCurrency(invoice.amount)}</p>
       </div>
     );
   }
-
-  const isPaid = invoice.status === 'paid';
 
   return (
-    <div className="mx-auto w-full space-y-6 py-2">
-      <header className="text-center">
-        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-          <Camera className="h-6 w-6 text-primary" />
-        </div>
+    <div className="space-y-6 pb-6">
+      <header className="pt-2 text-center">
         <p className="text-sm font-medium text-primary">{BUSINESS_NAME}</p>
-        <h1 className="mt-1 text-2xl font-bold">Invoice for {invoice.clientName}</h1>
-        <div className="mt-2 flex justify-center">
-          <Badge variant={isPaid ? 'paid' : 'sent'}>{isPaid ? 'Paid' : 'Payment due'}</Badge>
-        </div>
+        <h1 className="mt-1 text-xl font-bold">Invoice for {invoice.clientName}</h1>
+        <Badge variant="sent" className="mt-2">
+          Awaiting payment
+        </Badge>
       </header>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-3">
           <CardTitle className="text-base">{invoice.packageName}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -98,25 +97,14 @@ export default function PayPage({ params }: { params: Promise<{ id: string }> })
             <p className="font-body text-sm text-muted-foreground">Note: {invoice.note}</p>
           )}
           <Separator />
-          <div className="flex justify-between text-lg font-semibold">
+          <div className="flex justify-between font-semibold">
             <span>Total</span>
-            <span className="font-body">{formatCurrency(invoice.amount)}</span>
+            <span className="font-body text-lg">{formatCurrency(invoice.amount)}</span>
           </div>
         </CardContent>
       </Card>
 
-      {isPaid ? (
-        <Card className="border-emerald-200 bg-emerald-50">
-          <CardContent className="p-6 text-center">
-            <p className="font-semibold text-emerald-800">This invoice has been paid</p>
-            <p className="mt-1 font-body text-sm text-emerald-700">
-              Thank you! Matt has been notified.
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <PayCheckout amount={invoice.amount} onPay={handlePay} />
-      )}
+      <PayCheckout amount={invoice.amount} onPay={handlePay} />
     </div>
   );
 }

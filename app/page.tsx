@@ -17,7 +17,7 @@ export default function HomePage() {
   return (
     <div className="space-y-6 pb-4">
       <header className="pt-2">
-        <p className="text-sm font-medium text-primary">SnapPay</p>
+        <p className="text-sm font-medium text-primary">{BUSINESS_NAME}</p>
         <h1 className="mt-1 text-2xl font-bold tracking-tight">Hey Matt 👋</h1>
         <p className="mt-1 font-body text-sm text-muted-foreground">{BUSINESS_TAGLINE}</p>
       </header>
@@ -53,10 +53,7 @@ export default function HomePage() {
       </Button>
 
       <section className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Recent invoices</h2>
-          <p className="font-body text-xs text-muted-foreground">{BUSINESS_NAME}</p>
-        </div>
+        <h2 className="text-lg font-semibold">Recent invoices</h2>
 
         {loading ? (
           <p className="font-body text-sm text-muted-foreground">Loading invoices…</p>

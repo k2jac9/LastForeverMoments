@@ -12,15 +12,15 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { formatCurrency } from '@/lib/utils';
 import { getEmailPreview, getSmsPreview } from '@/lib/invoices';
-import type { Invoice } from '@/lib/types';
+import type { Invoice, SendVia } from '@/lib/types';
 
 interface SendPreviewSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   invoice: Invoice | null;
   payUrl: string;
-  sendVia: 'sms' | 'email';
-  onSendViaChange: (via: 'sms' | 'email') => void;
+  sendVia: SendVia;
+  onSendViaChange: (via: SendVia) => void;
   onConfirm: () => void;
   sending?: boolean;
 }
@@ -90,7 +90,7 @@ export function SendPreviewSheet({
           </div>
 
           <Button className="w-full" size="lg" onClick={onConfirm} disabled={sending}>
-            {sending ? 'Sending…' : 'Send & Get Paid'}
+            {sending ? 'Sending…' : 'Send invoice'}
           </Button>
         </div>
       </SheetContent>

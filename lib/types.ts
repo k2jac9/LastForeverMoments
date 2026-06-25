@@ -1,4 +1,4 @@
-export type InvoiceStatus = 'pending' | 'sent' | 'paid';
+export type InvoiceStatus = 'sent' | 'paid';
 
 export type PackageId =
   | 'full-wedding'
@@ -6,6 +6,8 @@ export type PackageId =
   | 'elopement'
   | 'second-shooter'
   | 'custom';
+
+export type SendVia = 'sms' | 'email';
 
 export interface LineItem {
   description: string;
@@ -30,7 +32,7 @@ export interface Invoice {
   amount: number;
   note?: string;
   status: InvoiceStatus;
-  sendVia: 'sms' | 'email';
+  sendVia: SendVia;
   createdAt: string;
   sentAt?: string;
   paidAt?: string;
@@ -44,5 +46,5 @@ export interface CreateInvoiceInput {
   lineItems: LineItem[];
   amount: number;
   note?: string;
-  sendVia: 'sms' | 'email';
+  sendVia: SendVia;
 }
